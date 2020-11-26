@@ -940,30 +940,32 @@ function setUpSettings() {
       }
       is_enabled = true;
       // Check interaction count filter
-      chrome.storage.sync.get("interaction_filter", function (
-        interaction_filter_status
-      ) {
-        if (interaction_filter_status.interaction_filter > 0) {
-          interaction_limit = parseInt(
-            interaction_filter_status.interaction_filter
-          );
-        } else {
-          interaction_limit = 0;
+      chrome.storage.sync.get(
+        "interaction_filter",
+        function (interaction_filter_status) {
+          if (interaction_filter_status.interaction_filter > 0) {
+            interaction_limit = parseInt(
+              interaction_filter_status.interaction_filter
+            );
+          } else {
+            interaction_limit = 0;
+          }
+          loadInteractionSetting = true;
         }
-        loadInteractionSetting = true;
-      });
+      );
 
       // Check comment count filter
-      chrome.storage.sync.get("comment_filter", function (
-        comment_filter_status
-      ) {
-        if (comment_filter_status.comment_filter > 0) {
-          comment_limit = parseInt(comment_filter_status.comment_filter);
-        } else {
-          comment_limit = 0;
+      chrome.storage.sync.get(
+        "comment_filter",
+        function (comment_filter_status) {
+          if (comment_filter_status.comment_filter > 0) {
+            comment_limit = parseInt(comment_filter_status.comment_filter);
+          } else {
+            comment_limit = 0;
+          }
+          loadCommentSetting = true;
         }
-        loadCommentSetting = true;
-      });
+      );
 
       // Check share count filter
       chrome.storage.sync.get("share_filter", function (share_filter_status) {

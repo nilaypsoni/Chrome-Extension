@@ -192,13 +192,10 @@ let dataArray = [];
           let allImages = e.getElementsByTagName("img");
           let allAnchors = e.getElementsByTagName("a");
           let allStrong = e.getElementsByTagName("strong");
+          let allITags = e.getElementsByTagName("i");
 
           let allSpansArray = Array.from(allSpans);
           let allVideosArray = Array.from(allVideos);
-
-          // console.log("THIS IS VIDEO HAI GUYS");
-          // console.log(allVideos);
-          // console.log(allVideos.length);
 
           let allImagesArray = Array.from(allImages);
           let allAnchorsArray = Array.from(allAnchors);
@@ -818,8 +815,8 @@ chrome.runtime.onMessage.addListener((msgObj) => {
 async function sendData() {
   let url =
     "https://productmafia-backend.herokuapp.com/api/v1/advertisement/array";
-  // let url = "http://localhost:3001/api/v1/advertisement/array";
 
+  console.log(dataArray);
   if (dataArray.length > 0) {
     fetch(url, {
       method: "POST",
