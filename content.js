@@ -816,7 +816,7 @@ async function sendData() {
   let url =
     "https://productmafia-backend.herokuapp.com/api/v1/advertisement/array";
 
-  console.log(dataArray);
+  // console.log(dataArray);
   if (dataArray.length > 0) {
     fetch(url, {
       method: "POST",
