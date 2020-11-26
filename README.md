@@ -17,7 +17,7 @@ interval. Once sent to our server, the data array is
 cleared, and next advertisements are pushed in data
 array.
 
-## The current state of development 🔨
+## The current state of development. 🔨
 Currently, we can only extract information that the dom
 has. The post link is also not available in the dom. So, we
 are missing the link to the original post. The links to
