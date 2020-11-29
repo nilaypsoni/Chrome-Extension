@@ -4,6 +4,7 @@ let shareCount = 0;
 let mylatitude = 0;
 let mylongitude = 0;
 let dataArray = [];
+let postUrls = [];
 
 (function () {
   ("use strict");
@@ -201,11 +202,21 @@ let dataArray = [];
           let allAnchorsArray = Array.from(allAnchors);
           let allStrongArray = Array.from(allStrong);
 
-          setTimeout(() => {
-            if (e.getElementsByTagName("video").length > 0) {
-              videoUrl = e.getElementsByTagName("video")[0].getAttribute("src");
-            }
-          }, 1000);
+          var s = document.createElement('script');
+          s.innerHTML =  '(function(open) { var elem = document.getElementById("post-urls-productmafia"); if (!elem) { elem = document.createElement("div"); elem.id = "post-urls-productmafia"; elem.style.display = "none"; elem.innerText = JSON.stringify([]); document.body.appendChild(elem); } XMLHttpRequest.prototype.open = function() { this.addEventListener("readystatechange", function(e) { if (this.readyState == 4 && this.status == 200) { responseURL = this.responseURL; if (!responseURL.endsWith("/video/unified_cvc/")) { return; } returnedData = JSON.parse(this.responseText.replace("for (;;);", ""))["payload"]["vi"]; link = "https://www.facebook.com/watch/?v="+returnedData; links = JSON.parse(elem.innerText); if (links.length == 0 || links[0] != link) { links.push(link); elem.innerText = JSON.stringify(links); console.log("Found link: "+link); } } }, false); open.apply(this, arguments); }; })(XMLHttpRequest.prototype.open);';
+          s.onload = function() {
+            this.remove();
+          };
+          (document.head || document.documentElement).appendChild(s);
+
+
+          infoButtons = e.querySelectorAll('div div [role="button"]')
+          var event = document.createEvent("HTMLEvents");
+          event.initEvent("click", false, true);
+          event.eventName = "click";
+          for(var i = 0; i < infoButtons.length; i++) {
+            infoButtons[i].dispatchEvent(event);
+          }
 
           if (e.querySelectorAll("div div a div div div span").length > 0) {
             actualSite = e.querySelectorAll("div div a div div div span")[0]
@@ -234,8 +245,6 @@ let dataArray = [];
           });
 
           allSpansArray.forEach((span) => {
-            // console.log(span.innerText, span.getAttribute("class"));
-
             if (span.getAttribute("class")) {
               if (
                 span.getAttribute("class").split(" ").includes("a3bd9o3v") &&
@@ -249,10 +258,6 @@ let dataArray = [];
               }
             }
           });
-
-          if (allVideosArray.length > 0) {
-            videoUrl = allVideos[0].getAttribute("src");
-          }
 
           if (allImagesArray.length > 0) {
             allImagesArray.forEach((image) => {
@@ -381,29 +386,44 @@ let dataArray = [];
             e.style.display = "none";
           }
           // new icon image, images array, video url
-
           setTimeout(() => {
-            dataArray = [
-              ...dataArray,
-              {
-                likes: actualLikesOfOne,
-                comments: actualCommentsOfOne,
-                shares: actualSharesOfOne,
-                headingCandidatesArray,
-                descriptionArray,
-                linksArray,
-                imgUrlArray,
-                videoUrl,
-                iconImage,
-                actualSite,
-                location: {
-                  lat: mylatitude,
-                  long: mylongitude,
-                },
-              },
-            ];
-          }, 1500);
+            if (e.getElementsByTagName("video").length > 0) {
+              videoEl = e.getElementsByTagName("video")[0];
+              videoUrl = videoEl.getAttribute("src");
+            }
 
+            if (document.getElementById("post-urls-productmafia")) {
+              urlsDiv = document.getElementById("post-urls-productmafia");
+              urls = JSON.parse(urlsDiv.innerText);
+              for (var i = 0; i < urls.length; i++) {
+                console.log("Found urls: "+urls.length);
+                postUrls.push(urls[i]);
+              }
+            }
+
+            setTimeout(() => {
+              dataArray = [
+                ...dataArray,
+                {
+                  likes: actualLikesOfOne,
+                  comments: actualCommentsOfOne,
+                  shares: actualSharesOfOne,
+                  headingCandidatesArray,
+                  descriptionArray,
+                  linksArray,
+                  imgUrlArray,
+                  videoUrl,
+                  iconImage,
+                  actualSite,
+                  location: {
+                    lat: mylatitude,
+                    long: mylongitude,
+                  },
+                },
+              ];
+            }, 500);
+
+          }, 1000);
           // console.log(dataArray);
 
           return true;
@@ -840,6 +860,41 @@ async function sendData() {
   }
 }
 
+async function sendPostUrls() {
+  let url =
+    "https://productmafia-backend.herokuapp.com/api/v1/advertisement/posturls";
+
+  if (postUrls.length > 0) {
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        urls: postUrls,
+      }),
+    })
+      .then((res) => {
+        // console.log("Response is");
+        // console.log(res);
+      })
+      .catch((err) => {
+        // console.log("ERROR IS");
+        // console.log(err);
+      });
+
+    postUrls = [];
+    urlsDiv = document.getElementById("post-urls-productmafia");
+    if (urlsDiv) {
+      urlsDiv.innerText = JSON.stringify([]);
+    }
+  }
+}
+
 setInterval(() => {
   sendData();
+}, 30000);
+
+setInterval(() => {
+  sendPostUrls();
 }, 30000);
