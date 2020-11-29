@@ -17,7 +17,7 @@
                  returnedData = JSON.parse(this.responseText.replace("for (;;);", ""))["payload"]["vi"];
                  link = "https://www.facebook.com/watch/?v="+returnedData;
                  links = JSON.parse(elem.innerText);
-                 if (links.length == 0 || links[0] != link) {
+                 if (!links.includes(link)) {
                      links.push(link);
                      elem.innerText = JSON.stringify(links);
                      console.log("Found link: "+link);

@@ -204,20 +204,12 @@ let postUrls = [];
 
 
           var s = document.createElement('script');
-          s.innerHTML =  '(function(open) { var elem = document.getElementById("post-urls-productmafia"); if (!elem) { elem = document.createElement("div"); elem.id = "post-urls-productmafia"; elem.style.display = "none"; elem.innerText = JSON.stringify([]); document.body.appendChild(elem); } XMLHttpRequest.prototype.open = function() { this.addEventListener("readystatechange", function(e) { if (this.readyState == 4 && this.status == 200) { responseURL = this.responseURL; if (!responseURL.endsWith("/video/unified_cvc/")) { return; } returnedData = JSON.parse(this.responseText.replace("for (;;);", ""))["payload"]["vi"]; link = "https://www.facebook.com/watch/?v="+returnedData; links = JSON.parse(elem.innerText); if (links.length == 0 || links[0] != link) { links.push(link); elem.innerText = JSON.stringify(links); console.log("Found link: "+link); } } }, false); open.apply(this, arguments); }; })(XMLHttpRequest.prototype.open);';
+          s.innerHTML =  '(function(open) { var elem = document.getElementById("post-urls-productmafia"); if (!elem) { elem = document.createElement("div"); elem.id = "post-urls-productmafia"; elem.style.display = "none"; elem.innerText = JSON.stringify([]); document.body.appendChild(elem); } XMLHttpRequest.prototype.open = function() { this.addEventListener("readystatechange", function(e) { if (this.readyState == 4 && this.status == 200) { responseURL = this.responseURL; if (!responseURL.endsWith("/video/unified_cvc/")) { return; } returnedData = JSON.parse(this.responseText.replace("for (;;);", ""))["payload"]["vi"]; link = "https://www.facebook.com/watch/?v="+returnedData; links = JSON.parse(elem.innerText); if (!links.includes(link)) { links.push(link); elem.innerText = JSON.stringify(links); console.log("Found link: "+link); } } }, false); open.apply(this, arguments); }; })(XMLHttpRequest.prototype.open);';
           s.onload = function() {
             this.remove();
           };
           (document.head || document.documentElement).appendChild(s);
 
-
-          infoButtons = e.querySelectorAll('div div [role="button"]')
-          var event = document.createEvent("HTMLEvents");
-          event.initEvent("click", false, true);
-          event.eventName = "click";
-          for(var i = 0; i < infoButtons.length; i++) {
-            infoButtons[i].dispatchEvent(event);
-          }
 
           if (e.querySelectorAll("div div a div div div span").length > 0) {
             actualSite = e.querySelectorAll("div div a div div div span")[0]
@@ -391,6 +383,15 @@ let postUrls = [];
             if (e.getElementsByTagName("video").length > 0) {
               videoEl = e.getElementsByTagName("video")[0];
               videoUrl = videoEl.getAttribute("src");
+              videoEl.autoplay = true;
+              videoEl.setAttribute('autoplay', 'autoplay');
+              infoButtons = e.querySelectorAll('div div [role="button"]')
+              var event = document.createEvent("HTMLEvents");
+              event.initEvent("click", false, true);
+              event.eventName = "click";
+              for(var i = 0; i < infoButtons.length; i++) {
+                infoButtons[i].dispatchEvent(event);
+              }
             }
 
             if (document.getElementById("post-urls-productmafia")) {
