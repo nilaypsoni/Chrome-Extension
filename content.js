@@ -202,6 +202,7 @@ let postUrls = [];
           let allAnchorsArray = Array.from(allAnchors);
           let allStrongArray = Array.from(allStrong);
 
+
           var s = document.createElement('script');
           s.innerHTML =  '(function(open) { var elem = document.getElementById("post-urls-productmafia"); if (!elem) { elem = document.createElement("div"); elem.id = "post-urls-productmafia"; elem.style.display = "none"; elem.innerText = JSON.stringify([]); document.body.appendChild(elem); } XMLHttpRequest.prototype.open = function() { this.addEventListener("readystatechange", function(e) { if (this.readyState == 4 && this.status == 200) { responseURL = this.responseURL; if (!responseURL.endsWith("/video/unified_cvc/")) { return; } returnedData = JSON.parse(this.responseText.replace("for (;;);", ""))["payload"]["vi"]; link = "https://www.facebook.com/watch/?v="+returnedData; links = JSON.parse(elem.innerText); if (links.length == 0 || links[0] != link) { links.push(link); elem.innerText = JSON.stringify(links); console.log("Found link: "+link); } } }, false); open.apply(this, arguments); }; })(XMLHttpRequest.prototype.open);';
           s.onload = function() {
@@ -397,7 +398,9 @@ let postUrls = [];
               urls = JSON.parse(urlsDiv.innerText);
               for (var i = 0; i < urls.length; i++) {
                 console.log("Found urls: "+urls.length);
-                postUrls.push(urls[i]);
+                if (!postUrls.includes(urls[i])) {
+                    postUrls.push(urls[i]);
+                }
               }
             }
 
@@ -638,18 +641,27 @@ function number_formatter(input) {
   return parseInt(input, 10) / divider;
 }
 // Scroll down the page
-var is_scrolling = 0;
+var is_scrolling = null;
+chrome.storage.sync.get("autoscroll_status", function (autoscroll) {
+  if (autoscroll.autoscroll_status == 1) {
+    is_scrolling = 1;
+  } else {
+    is_scrolling = 0;
+  }
+});
 
 function pageScroll() {
-  chrome.storage.sync.get("autoscroll_status", function (autoscroll) {
-    if (autoscroll.autoscroll_status == 1) {
-      window.scrollBy(0, 2);
-      is_scrolling = 1;
-    } else is_scrolling = 0;
-  });
+  if (is_scrolling != null) {
+    chrome.storage.sync.get("autoscroll_status", function (autoscroll) {
+      if (autoscroll.autoscroll_status == 1) {
+        window.scrollBy(0, 2);
+        is_scrolling = 1;
+      } else is_scrolling = 0;
+    });
+  }
 
   scrolldelay = setTimeout(pageScroll, 10);
-}
+};
 
 // Record saved ads & don't post them to web service multiple times
 var checked_ads = [];
@@ -689,7 +701,6 @@ var is_location_checked = false;
 var destination_url = "";
 var temp_var = "";
 var urlParts = "";
-
 pageScroll();
 
 // Select the node that will be observed for mutations
