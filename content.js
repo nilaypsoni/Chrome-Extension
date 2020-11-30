@@ -4,6 +4,7 @@ let shareCount = 0;
 let mylatitude = 0;
 let mylongitude = 0;
 let dataArray = [];
+let postUrls = [];
 
 (function () {
   ("use strict");
@@ -108,6 +109,68 @@ let dataArray = [];
     );
   }
 
+
+  function simulate(element, eventName)
+  {
+      var options = extend(defaultOptions, arguments[2] || {});
+      var oEvent, eventType = null;
+
+      for (var name in eventMatchers)
+      {
+          if (eventMatchers[name].test(eventName)) { eventType = name; break; }
+      }
+
+      if (!eventType)
+          throw new SyntaxError('Only HTMLEvents and MouseEvents interfaces are supported');
+
+      if (document.createEvent)
+      {
+          oEvent = document.createEvent(eventType);
+          if (eventType == 'HTMLEvents')
+          {
+              oEvent.initEvent(eventName, options.bubbles, options.cancelable);
+          }
+          else
+          {
+              oEvent.initMouseEvent(eventName, options.bubbles, options.cancelable, document.defaultView,
+              options.button, options.pointerX, options.pointerY, options.pointerX, options.pointerY,
+              options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, element);
+          }
+          element.dispatchEvent(oEvent);
+      }
+      else
+      {
+          options.clientX = options.pointerX;
+          options.clientY = options.pointerY;
+          var evt = document.createEventObject();
+          oEvent = extend(evt, options);
+          element.fireEvent('on' + eventName, oEvent);
+      }
+      return element;
+  }
+
+  function extend(destination, source) {
+      for (var property in source)
+        destination[property] = source[property];
+      return destination;
+  }
+
+  var eventMatchers = {
+      'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
+      'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out|enter|over))$/
+  }
+  var defaultOptions = {
+      pointerX: 0,
+      pointerY: 0,
+      button: 0,
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      bubbles: true,
+      cancelable: true
+  }
+
   function getVisibleText(e) {
     if (isHidden(e)) {
       return "";
@@ -201,11 +264,14 @@ let dataArray = [];
           let allAnchorsArray = Array.from(allAnchors);
           let allStrongArray = Array.from(allStrong);
 
-          setTimeout(() => {
-            if (e.getElementsByTagName("video").length > 0) {
-              videoUrl = e.getElementsByTagName("video")[0].getAttribute("src");
-            }
-          }, 1000);
+
+          var s = document.createElement('script');
+          s.innerHTML =  '(function(open) { var elem = document.getElementById("post-urls-productmafia"); if (!elem) { elem = document.createElement("div"); elem.id = "post-urls-productmafia"; elem.style.display = "none"; elem.innerText = JSON.stringify([]); document.body.appendChild(elem); } XMLHttpRequest.prototype.open = function() { this.addEventListener("readystatechange", function(e) { if (this.readyState == 4 && this.status == 200) { responseURL = this.responseURL; if (!responseURL.endsWith("/video/unified_cvc/")) { return; } returnedData = JSON.parse(this.responseText.replace("for (;;);", ""))["payload"]["vi"]; link = "https://www.facebook.com/watch/?v="+returnedData; links = JSON.parse(elem.innerText); if (!links.includes(link)) { links.push(link); elem.innerText = JSON.stringify(links); console.log("Found link: "+link); } } }, false); open.apply(this, arguments); }; })(XMLHttpRequest.prototype.open);';
+          s.onload = function() {
+            this.remove();
+          };
+          (document.head || document.documentElement).appendChild(s);
+
 
           if (e.querySelectorAll("div div a div div div span").length > 0) {
             actualSite = e.querySelectorAll("div div a div div div span")[0]
@@ -234,8 +300,6 @@ let dataArray = [];
           });
 
           allSpansArray.forEach((span) => {
-            // console.log(span.innerText, span.getAttribute("class"));
-
             if (span.getAttribute("class")) {
               if (
                 span.getAttribute("class").split(" ").includes("a3bd9o3v") &&
@@ -249,10 +313,6 @@ let dataArray = [];
               }
             }
           });
-
-          if (allVideosArray.length > 0) {
-            videoUrl = allVideos[0].getAttribute("src");
-          }
 
           if (allImagesArray.length > 0) {
             allImagesArray.forEach((image) => {
@@ -381,29 +441,51 @@ let dataArray = [];
             e.style.display = "none";
           }
           // new icon image, images array, video url
-
           setTimeout(() => {
-            dataArray = [
-              ...dataArray,
-              {
-                likes: actualLikesOfOne,
-                comments: actualCommentsOfOne,
-                shares: actualSharesOfOne,
-                headingCandidatesArray,
-                descriptionArray,
-                linksArray,
-                imgUrlArray,
-                videoUrl,
-                iconImage,
-                actualSite,
-                location: {
-                  lat: mylatitude,
-                  long: mylongitude,
-                },
-              },
-            ];
-          }, 1500);
+            if (e.getElementsByTagName("video").length > 0) {
+              videoEl = e.getElementsByTagName("video")[0];
+              videoUrl = videoEl.getAttribute("src");
+              videoEl.autoplay = true;
+              videoEl.setAttribute('autoplay', 'autoplay');
+              simulate(document.querySelector("div[role=main]"), "mousedown");
+              simulate(document.querySelector("div[role=main]"), "click");
+              simulate(document.querySelector("div[role=main]"), "mouseup");
+            }
 
+            if (document.getElementById("post-urls-productmafia")) {
+              urlsDiv = document.getElementById("post-urls-productmafia");
+              urls = JSON.parse(urlsDiv.innerText);
+              for (var i = 0; i < urls.length; i++) {
+                console.log("Found urls: "+urls.length);
+                if (!postUrls.includes(urls[i])) {
+                    postUrls.push(urls[i]);
+                }
+              }
+            }
+
+            setTimeout(() => {
+              dataArray = [
+                ...dataArray,
+                {
+                  likes: actualLikesOfOne,
+                  comments: actualCommentsOfOne,
+                  shares: actualSharesOfOne,
+                  headingCandidatesArray,
+                  descriptionArray,
+                  linksArray,
+                  imgUrlArray,
+                  videoUrl,
+                  iconImage,
+                  actualSite,
+                  location: {
+                    lat: mylatitude,
+                    long: mylongitude,
+                  },
+                },
+              ];
+            }, 500);
+
+          }, 1000);
           // console.log(dataArray);
 
           return true;
@@ -617,19 +699,36 @@ function number_formatter(input) {
 
   return parseInt(input, 10) / divider;
 }
+
 // Scroll down the page
-var is_scrolling = 0;
+var is_scrolling = null;
+var was_scrolling = null;
+chrome.storage.sync.get("autoscroll_status", function (autoscroll) {
+  if (autoscroll.autoscroll_status == 1) {
+    is_scrolling = 1;
+  } else {
+    is_scrolling = 0;
+  }
+  was_scrolling = is_scrolling;
+});
 
 function pageScroll() {
-  chrome.storage.sync.get("autoscroll_status", function (autoscroll) {
-    if (autoscroll.autoscroll_status == 1) {
-      window.scrollBy(0, 2);
-      is_scrolling = 1;
-    } else is_scrolling = 0;
-  });
+  if (is_scrolling != null) {
+    chrome.storage.sync.get("autoscroll_status", function (autoscroll) {
+      if (autoscroll.autoscroll_status == 1) {
+        window.scrollBy(0, 2);
+        is_scrolling = 1;
+      } else is_scrolling = 0;
+
+      if (was_scrolling != is_scrolling) {
+        console.log("Changed scrolling mode");
+      }
+      was_scrolling = is_scrolling;
+    });
+  }
 
   scrolldelay = setTimeout(pageScroll, 10);
-}
+};
 
 // Record saved ads & don't post them to web service multiple times
 var checked_ads = [];
@@ -669,7 +768,6 @@ var is_location_checked = false;
 var destination_url = "";
 var temp_var = "";
 var urlParts = "";
-
 pageScroll();
 
 // Select the node that will be observed for mutations
@@ -840,6 +938,41 @@ async function sendData() {
   }
 }
 
+async function sendPostUrls() {
+  let url =
+    "https://productmafia-backend.herokuapp.com/api/v1/advertisement/posturls";
+
+  if (postUrls.length > 0) {
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        urls: postUrls,
+      }),
+    })
+      .then((res) => {
+        // console.log("Response is");
+        // console.log(res);
+      })
+      .catch((err) => {
+        // console.log("ERROR IS");
+        // console.log(err);
+      });
+
+    postUrls = [];
+    urlsDiv = document.getElementById("post-urls-productmafia");
+    if (urlsDiv) {
+      urlsDiv.innerText = JSON.stringify([]);
+    }
+  }
+}
+
 setInterval(() => {
   sendData();
+}, 30000);
+
+setInterval(() => {
+  sendPostUrls();
 }, 30000);

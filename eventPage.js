@@ -8,12 +8,12 @@ function send_to_api_productmafia(post_message)
 
             R.onreadystatechange = function () {
                 //Create the onreadystate function
-               
+
                 if (R.readyState == 4) {
-                    
+
 
                 }
-                
+
             }
             R.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
             R.send(post_message); //Now send the request
